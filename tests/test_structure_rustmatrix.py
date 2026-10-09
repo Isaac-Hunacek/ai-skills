@@ -37,9 +37,10 @@ import re
 import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-RM_SKILLS = sorted(p for p in (ROOT / "skills").iterdir()
+RELEASES = ROOT / ".releases"
+RM_SKILLS = sorted(p / "1.0" for p in RELEASES.iterdir()
                    if p.is_dir() and p.name.startswith("rustmatrix-"))
-RM_NAMES = [p.name for p in RM_SKILLS]
+RM_NAMES = [p.parent.name for p in RM_SKILLS]
 
 # Radar wavelengths in mm, as rustmatrix.tmatrix_aux defines them. Any skill
 # quoting a band wavelength must quote one of these.
@@ -99,9 +100,9 @@ def test_provenance_names_version_and_date(skill):
     """
     text = read(skill)
     assert re.search(r"rustmatrix\s+2\.2\.0", text), \
-        f"{skill.name}: no rustmatrix version named"
+        f"{skill.parent.name}: no rustmatrix version named"
     assert re.search(r"\b20\d\d-\d\d-\d\d\b", text), \
-        f"{skill.name}: no ISO date for the measurements"
+        f"{skill.parent.name}: no ISO date for the measurements"
 
 
 @pytest.mark.parametrize("skill", RM_SKILLS, ids=RM_NAMES)
@@ -118,7 +119,7 @@ def test_machine_specific_numbers_are_flagged(skill):
         pytest.skip("no timing or speedup claims")
     assert re.search(r"machine-specific|machine specific|Re-measure|re-measure",
                      text), \
-        (f"{skill.name}: quotes timings or speedups but never flags them as "
+        (f"{skill.parent.name}: quotes timings or speedups but never flags them as "
          "machine-specific")
 
 
@@ -130,9 +131,9 @@ def test_credits_the_author(skill):
     tracker to open, and the library asks to be cited.
     """
     text = read(skill)
-    assert "Nesbitt" in text, f"{skill.name}: does not credit the author"
+    assert "Nesbitt" in text, f"{skill.parent.name}: does not credit the author"
     assert re.search(r"10\.5281/zenodo\.\d+", text), \
-        f"{skill.name}: no DOI for citation"
+        f"{skill.parent.name}: no DOI for citation"
 
 
 # ------------------------------------------------------- internal consistency
@@ -145,7 +146,7 @@ def test_band_wavelengths_consistent(skill):
     for band, mm in BANDS_MM.items():
         for v in numbers_near(text, rf"wl_{band}\s*=\s*([\d.]+)"):
             if abs(v - mm) > 0.005:
-                bad.append(f"{skill.name}: wl_{band}={v}, expected {mm}")
+                bad.append(f"{skill.parent.name}: wl_{band}={v}, expected {mm}")
     assert not bad, "band wavelengths misquoted:\n  " + "\n  ".join(bad)
 
 
@@ -162,7 +163,7 @@ def test_dsr_zero_crossings_consistent(skill):
         pat = rf"{name}[^\n]{{0,40}}?(\d\d\.\d{{3,4}})"
         for v in numbers_near(text, pat):
             if abs(v - expected) > 0.001 and v not in DSR_ZEROS.values():
-                bad.append(f"{skill.name}: {name} crossing {v}, expected {expected}")
+                bad.append(f"{skill.parent.name}: {name} crossing {v}, expected {expected}")
     assert not bad, "drop-shape zero crossings misquoted:\n  " + "\n  ".join(bad)
 
 
@@ -185,7 +186,7 @@ def test_no_unqualified_exactness_claims():
                                       r"0\.0000000|residual", ctx, re.I)
                 if not qualified:
                     offenders.append(
-                        f"{skill.name}/{fname}: unqualified exactness claim near "
+                        f"{skill.parent.name}/{fname}: unqualified exactness claim near "
                         f"...{text[max(0, m.start() - 60):m.end() + 60].strip()}...")
     assert not offenders, ("exactness claimed without a residual figure:\n  " +
                            "\n  ".join(offenders))
@@ -198,7 +199,7 @@ def test_n_alpha_parity_rule_is_stated_with_both_residuals():
     residual (1.8e-04 vs 3.0e-07 dB). Collapsing them is what produced the
     original wrong claim, so the document must keep them apart.
     """
-    skill = ROOT / "skills" / "rustmatrix-scattering"
+    skill = RELEASES / "rustmatrix-scattering" / "1.0"
     if not skill.exists():
         pytest.skip("scattering skill not in this repo")
     text = read(skill)
@@ -230,7 +231,7 @@ def test_axis_ratio_convention_has_one_direction():
                 if re.search(r"wrong|not\b|never|silently|prolate|incorrect|"
                              r"footgun|foot-gun|trap|bug|catch", ctx, re.I):
                     continue
-                offenders.append(f"{skill.name}/{fname}: unmarked "
+                offenders.append(f"{skill.parent.name}/{fname}: unmarked "
                                  f"axis_ratio=dsr_* at offset {m.start()}")
     assert not offenders, ("bare axis_ratio=dsr_*(D) with no warning "
                            "(should be 1.0/dsr_*(D)):\n  " + "\n  ".join(offenders))
@@ -243,10 +244,10 @@ def test_solver_caps_stated_consistently():
         text = read(skill)
         for v in numbers_near(text, r"NPN1\s*(?:=|\u2264|<=)?\s*(\d+)"):
             if v != NPN1:
-                bad.append(f"{skill.name}: NPN1={v}, expected {NPN1}")
+                bad.append(f"{skill.parent.name}: NPN1={v}, expected {NPN1}")
         for v in numbers_near(text, r"NPNG1\s*(?:=|\u2264|<=)?\s*(\d+)"):
             if v != NPNG1:
-                bad.append(f"{skill.name}: NPNG1={v}, expected {NPNG1}")
+                bad.append(f"{skill.parent.name}: NPNG1={v}, expected {NPNG1}")
     assert not bad, "solver caps misquoted:\n  " + "\n  ".join(bad)
 
 
@@ -257,7 +258,7 @@ def test_convergence_envelope_is_monotone():
     x, so it must hit the NPN1 cap sooner. A table that violates this is a
     transcription error whatever machine produced it.
     """
-    skill = ROOT / "skills" / "rustmatrix-scattering"
+    skill = RELEASES / "rustmatrix-scattering" / "1.0"
     if not skill.exists():
         pytest.skip("scattering skill not in this repo")
     text = read(skill)
@@ -278,7 +279,7 @@ def test_convergence_envelope_is_monotone():
 def test_thurai_recipe_arithmetic():
     """1/dsr_thurai_2007(8.0) must equal the axis ratio the docs blame for W-band
     panics, and the D=3mm reference case must invert consistently."""
-    text = read(ROOT / "skills" / "rustmatrix-scattering")
+    text = read(RELEASES / "rustmatrix-scattering" / "1.0")
     cited = numbers_near(text, r"1\.0/dsr_thurai_2007\(8\.0\)\s*=\s*([\d.]+)")
     if cited:
         for v in cited:
@@ -301,7 +302,7 @@ def test_documented_helpers_exist(skill):
     """
     ns = sidecar_ns(skill)
     if not ns:
-        pytest.skip(f"{skill.name} ships no kernel.py")
+        pytest.skip(f"{skill.parent.name} ships no kernel.py")
     tree = ast.parse(read(skill, "kernel.py"))
     defined = {n.name for n in tree.body if isinstance(n, ast.FunctionDef)}
     defined |= {k for k, v in ns.items() if callable(v)}
@@ -328,7 +329,7 @@ def test_documented_helpers_exist(skill):
         "type", "array", "abs", "sum", "trapz",
     }
     missing = sorted(n for n in called - external if n not in defined)
-    assert not missing, (f"{skill.name}/SKILL.md calls helpers that kernel.py "
+    assert not missing, (f"{skill.parent.name}/SKILL.md calls helpers that kernel.py "
                         f"does not define: {missing}")
 
 
@@ -341,7 +342,7 @@ def test_guard_helpers_actually_guard(skill):
     """
     src = read(skill, "kernel.py")
     if not src:
-        pytest.skip(f"{skill.name} ships no kernel.py")
+        pytest.skip(f"{skill.parent.name} ships no kernel.py")
     tree = ast.parse(src)
     toothless = []
     for node in tree.body:
@@ -353,7 +354,7 @@ def test_guard_helpers_actually_guard(skill):
                        for n in ast.walk(node))
         if not can_fail:
             toothless.append(node.name)
-    assert not toothless, (f"{skill.name}/kernel.py: guard helpers with no "
+    assert not toothless, (f"{skill.parent.name}/kernel.py: guard helpers with no "
                            f"assert or raise: {toothless}")
 
 
@@ -364,7 +365,7 @@ def test_panic_guard_uses_base_exception():
     BaseException — `except Exception` misses it and the worker dies. A helper
     advertised as making a call safe must not use the narrower form.
     """
-    skill = ROOT / "skills" / "rustmatrix-scattering"
+    skill = RELEASES / "rustmatrix-scattering" / "1.0"
     if not skill.exists():
         pytest.skip("scattering skill not in this repo")
     src = read(skill, "kernel.py")
@@ -408,11 +409,11 @@ def test_up_looking_helper_negates_fall_speed():
             checked += 1
             body = ast.unparse(node)
             assert re.search(r"-\s*np\.asarray|-\s*float\(|\[::-1\]", body), \
-                f"{skill.name}/{node.name}: no negation visible"
+                f"{skill.parent.name}/{node.name}: no negation visible"
             # the fall-speed callable itself must be negated
             assert re.search(r"def\s+\w+\(D\):\s*\n\s*return\s+-", body) or \
                    re.search(r"-\s*np\.asarray\(\s*fall_speed", body), \
-                f"{skill.name}/{node.name}: negates w/v_bins but not the fall speed"
+                f"{skill.parent.name}/{node.name}: negates w/v_bins but not the fall speed"
     assert checked, "no up_looking helper found in either skill"
 
 
@@ -534,7 +535,7 @@ def test_live_clamped_axis_ratio_prevents_panic():
     from rustmatrix import Scatterer, psd
     from rustmatrix.refractive import m_w_10C
     from rustmatrix.tmatrix_aux import K_w_sqr, geom_vert_back, wl_Ka
-    ns = sidecar_ns(ROOT / "skills" / "rustmatrix-scattering")
+    ns = sidecar_ns(RELEASES / "rustmatrix-scattering" / "1.0")
     clamp = ns.get("clamped_axis_ratio")
     assert clamp is not None, "kernel.py defines no clamped_axis_ratio"
     s = Scatterer(wavelength=wl_Ka, m=m_w_10C[wl_Ka], Kw_sqr=K_w_sqr[wl_Ka])
@@ -551,7 +552,7 @@ def test_live_clamped_axis_ratio_prevents_panic():
 def test_live_sigma_beam_closed_form():
     """The sidecar's beam-broadening helper must match the closed form."""
     import numpy as np
-    ns = sidecar_ns(ROOT / "skills" / "rustmatrix-spectra")
+    ns = sidecar_ns(RELEASES / "rustmatrix-spectra" / "1.0")
     fn = ns.get("sigma_beam")
     if fn is None:
         pytest.skip("spectra sidecar ships no sigma_beam")

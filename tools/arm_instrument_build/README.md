@@ -1,6 +1,6 @@
 # ARM instrument skill build pipeline
 
-Produces the per-instrument skills under `skills/arm-instruments/`. Run from a Claude
+Produces the per-instrument skills under `.releases/arm-instruments/1.0/`. Run from a Claude
 Science python cell with `host` available and `ARMUSER`/`ARMTOKEN` in the environment.
 
     extract.py   handbook PDF text -> page-cited structured facts (forced tool call,
@@ -13,5 +13,5 @@ data facts must come from the file, never from the handbook, because the two dis
 often enough to matter - a handbook describes the instrument as designed, the file
 records what the ingest currently writes.
 
-`skills/arm-instruments/kernel.py` carries the catalog and handbook-resolution helpers
+`.releases/arm-instruments/1.0/kernel.py` carries the catalog and handbook-resolution helpers
 both steps use.

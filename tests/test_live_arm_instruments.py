@@ -22,7 +22,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 RELEASES = ROOT / ".releases"
 TRANCHE = RELEASES / "arm-instruments" / "1.0"
 SKILLS = sorted(RELEASES.glob("arm-instrument-*/1.0"))
-IDS = [p.name for p in SKILLS]
+IDS = [p.parent.name for p in SKILLS]
 
 ES_URL = "https://www.arm.gov/api/es/ds/_search"
 ARMLIVE_QUERY = "https://adc.arm.gov/armlive/livedata/query"
@@ -61,13 +61,13 @@ def test_catalog_still_enumerates_instrument_classes():
     live = {h["_source"].get("instrument_class_code") for h in hits
             if h["_source"].get("type") is None}
     assert len(live) > 400, f"only {len(live)} instrument classes in the live index"
-    shipped = {p.name[len("arm-instrument-"):] for p in SKILLS}
+    shipped = {p.parent.name[len("arm-instrument-"):] for p in SKILLS}
     assert shipped <= live, f"codes no longer in ARM's index: {sorted(shipped - live)}"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
 def test_handbook_pdf_still_resolves(skill):
-    url = catalog()[skill.name[len("arm-instrument-"):]]["pdf"]
+    url = catalog()[skill.parent.name[len("arm-instrument-"):]]["pdf"]
     req = urllib.request.Request(url, method="HEAD")
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
@@ -75,7 +75,7 @@ def test_handbook_pdf_still_resolves(skill):
             assert "pdf" in r.headers.get("Content-Type", ""), \
                 f"{url} is no longer served as a PDF"
     except urllib.error.HTTPError as e:
-        pytest.fail(f"{skill.name}: handbook {url} returned HTTP {e.code}")
+        pytest.fail(f"{skill.parent.name}: handbook {url} returned HTTP {e.code}")
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)

@@ -20,7 +20,7 @@ RELEASES = ROOT / ".releases"
 TRANCHE = RELEASES / "arm-vaps" / "1.0"
 CATALOG = RELEASES / "arm-instruments" / "1.0" / "catalog.csv"
 SKILLS = sorted(RELEASES.glob("arm-vap-*/1.0"))
-IDS = [p.name for p in SKILLS]
+IDS = [p.parent.name for p in SKILLS]
 ARMLIVE_QUERY = "https://adc.arm.gov/armlive/livedata/query"
 
 pytestmark = pytest.mark.skipif(not SKILLS, reason="arm-vaps tranche not in this repo")
@@ -33,14 +33,14 @@ def catalog():
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
 def test_report_pdf_still_resolves(skill):
-    url = catalog()[skill.name[len("arm-vap-"):]]["pdf"]
+    url = catalog()[skill.parent.name[len("arm-vap-"):]]["pdf"]
     assert url == url.strip(), "catalog URL carries whitespace; strip it before requesting"
     try:
         with urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=60) as r:
             assert r.status == 200
             assert "pdf" in r.headers.get("Content-Type", ""), f"{url} no longer served as a PDF"
     except urllib.error.HTTPError as e:
-        pytest.fail(f"{skill.name}: report {url} returned HTTP {e.code}")
+        pytest.fail(f"{skill.parent.name}: report {url} returned HTTP {e.code}")
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)

@@ -30,7 +30,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKILLS = sorted((release / "1.0" for release in (ROOT / ".releases").iterdir()
                 if release.is_dir() and (release / "1.0" / "SKILL.md").exists()),
                 key=lambda p: p.parent.name)
-IDS = [p.name for p in SKILLS]
+IDS = [p.parent.name for p in SKILLS]
 
 # helpers defined by act-arm-live, act-qc and arm-instruments kernel.py sidecars
 KERNEL_HELPERS = {
@@ -91,7 +91,7 @@ def test_no_kernel_helper_called_in_a_snippet(skill):
     offenders = sorted({s for b in code_blocks(skill) for s in called_symbols(b)
                         if s in KERNEL_HELPERS})
     assert not offenders, (
-        f"{skill.name}: code block calls skill kernel helper(s) {offenders}. These are not "
+        f"{skill.parent.name}: code block calls skill kernel helper(s) {offenders}. These are not "
         f"ACT functions; use ACT's own API in snippets and name the helpers in prose only.")
 
 
@@ -115,12 +115,12 @@ def test_package_calls_resolve(skill):
             pytest.skip(f"{s.split('.')[0]} not installed")
         if r is False:
             broken.append(s)
-    recorded = KNOWN_ABSENT.get(skill.name, set())
+    recorded = KNOWN_ABSENT.get(skill.parent.name, set())
     new = set(broken) - recorded
     assert not new, (
-        f"{skill.name}: snippet calls names absent from the installed package: {sorted(new)}")
+        f"{skill.parent.name}: snippet calls names absent from the installed package: {sorted(new)}")
     assert not recorded - set(broken), (
-        f"{skill.name}: {sorted(recorded - set(broken))} resolves now - delete from KNOWN_ABSENT")
+        f"{skill.parent.name}: {sorted(recorded - set(broken))} resolves now - delete from KNOWN_ABSENT")
 
 
 def bound_names(tree):
@@ -197,11 +197,11 @@ def test_snippet_symbols_are_accounted_for(skill):
                 if importlib.util.find_spec(f.id) is None:
                     unknown[f.id] = ast.unparse(n.func)
     found = set(unknown.values())
-    recorded = KNOWN_UNREACHABLE.get(skill.name, set())
+    recorded = KNOWN_UNREACHABLE.get(skill.parent.name, set())
     new = found - recorded
     assert not new, (
-        f"{skill.name}: snippet calls {sorted(new)} with no import, assignment or known "
+        f"{skill.parent.name}: snippet calls {sorted(new)} with no import, assignment or known "
         f"source - a reader running the block gets a NameError")
     fixed = recorded - found
     assert not fixed, (
-        f"{skill.name}: {sorted(fixed)} now reachable - delete from KNOWN_UNREACHABLE")
+        f"{skill.parent.name}: {sorted(fixed)} now reachable - delete from KNOWN_UNREACHABLE")

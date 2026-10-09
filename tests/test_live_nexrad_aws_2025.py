@@ -4,7 +4,7 @@ import os as _os
 def SKILL_DIR(name):
     """Absolute path to a skill directory in this repo."""
     return _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
-                         "skills", name)
+                         ".releases", name, "1.0")
 
 def SKILL_PATH(name, filename):
     return _os.path.join(SKILL_DIR(name), filename)

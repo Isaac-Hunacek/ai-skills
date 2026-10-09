@@ -28,7 +28,7 @@ def discover(root):
 
 
 SKILLS = discover(RELEASES)
-NAMES = [p.name for p in SKILLS]
+NAMES = [p.parent.name for p in SKILLS]
 DEAD_BUCKET = "noaa-nexrad-level2"
 
 
@@ -46,7 +46,7 @@ def test_release_layout():
 
 
 def sidecars():
-    return [(p.name, p / "kernel.py") for p in SKILLS if (p / "kernel.py").exists()]
+    return [(p.parent.name, p / "kernel.py") for p in SKILLS if (p / "kernel.py").exists()]
 
 
 def frontmatter(skill_dir):
@@ -67,19 +67,19 @@ def frontmatter(skill_dir):
 
 @pytest.mark.parametrize("skill", SKILLS, ids=NAMES)
 def test_has_skill_md(skill):
-    assert (skill / "SKILL.md").exists(), f"{skill.name} has no SKILL.md"
+    assert (skill / "SKILL.md").exists(), f"{skill.parent.name} has no SKILL.md"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=NAMES)
 def test_frontmatter_valid(skill):
     meta, _ = frontmatter(skill)
-    assert meta.get("name") == skill.name, \
-        f"frontmatter name {meta.get('name')!r} != directory {skill.name!r}"
+    assert meta.get("name") == skill.parent.name, \
+        f"frontmatter name {meta.get('name')!r} != directory {skill.parent.name!r}"
     desc = meta.get("description", "")
-    assert len(desc) > 80, f"{skill.name}: description too thin to route on"
+    assert len(desc) > 80, f"{skill.parent.name}: description too thin to route on"
     # the registry rejects anything it reads as markup
     assert not re.search(r"<[^>]+>", desc), \
-        f"{skill.name}: description contains angle-bracket text"
+        f"{skill.parent.name}: description contains angle-bracket text"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=NAMES)
@@ -92,21 +92,21 @@ def test_frontmatter_is_valid_yaml(skill):
     yaml = pytest.importorskip("yaml")
     text = (skill / "SKILL.md").read_text()
     m = re.match(r"---\n(.*?)\n---\n", text, re.S)
-    assert m, f"{skill.name}: no frontmatter block"
+    assert m, f"{skill.parent.name}: no frontmatter block"
     try:
         meta = yaml.safe_load(m.group(1))
     except yaml.YAMLError as e:
-        pytest.fail(f"{skill.name}: frontmatter is not valid YAML - {e}\n"
+        pytest.fail(f"{skill.parent.name}: frontmatter is not valid YAML - {e}\n"
                     f"  a value containing ': ' must be quoted or reworded")
     assert isinstance(meta, dict), \
-        f"{skill.name}: frontmatter parsed as {type(meta).__name__}, not a mapping"
-    assert meta.get("name") == skill.name, \
-        f"{skill.name}: YAML name is {meta.get('name')!r}"
+        f"{skill.parent.name}: frontmatter parsed as {type(meta).__name__}, not a mapping"
+    assert meta.get("name") == skill.parent.name, \
+        f"{skill.parent.name}: YAML name is {meta.get('name')!r}"
     assert isinstance(meta.get("description"), str), \
-        f"{skill.name}: description did not parse as a string"
+        f"{skill.parent.name}: description did not parse as a string"
     # the registry refuses a publish above this; the regex parser above does not notice
     assert len(meta["description"]) <= 1024, \
-        f"{skill.name}: description is {len(meta['description'])} characters, registry caps it at 1024"
+        f"{skill.parent.name}: description is {len(meta['description'])} characters, registry caps it at 1024"
 
 
 @pytest.mark.parametrize("name,path", sidecars(),
@@ -163,7 +163,7 @@ def test_no_dead_bucket_recommendation(skill):
                 continue
             if re.search(r"try\s+aws|fall\s*back\s+to\s+`?" + DEAD_BUCKET,
                          ctx, re.I):
-                pytest.fail(f"{skill.name}/{f.name} recommends the dead bucket:\n"
+                pytest.fail(f"{skill.parent.name}/{f.name} recommends the dead bucket:\n"
                             f"  ...{ctx.strip()}...")
 
 
@@ -178,7 +178,7 @@ def test_no_embedded_secrets(skill):
     for f in skill.iterdir():
         if f.is_file() and f.suffix in (".md", ".py", ".json"):
             hit = pattern.search(f.read_text())
-            assert not hit, f"{skill.name}/{f.name} looks like it embeds a secret: " \
+            assert not hit, f"{skill.parent.name}/{f.name} looks like it embeds a secret: " \
                             f"{hit.group(0)[:24]}..."
 
 
@@ -199,8 +199,8 @@ def test_cross_references_resolve():
     for skill in SKILLS:
         text = (skill / "SKILL.md").read_text()
         for ref in set(re.findall(r"`(nexrad-[a-z0-9-]+|arm-[a-z0-9-]+)`", text)):
-            if ref not in known and ref != skill.name:
-                missing.append(f"{skill.name} -> {ref}")
+            if ref not in known and ref != skill.parent.name:
+                missing.append(f"{skill.parent.name} -> {ref}")
     assert not missing, ("cross-references to unknown skills (publish them "
                          "together, reword, or add to KNOWN_EXTERNAL):\n  " +
                          "\n  ".join(sorted(set(missing))))
@@ -256,4 +256,4 @@ def test_verified_section_is_dated(skill):
         pytest.skip("no verification section")
     tail = text[m.end():]
     assert re.search(r"\d{4}-\d{2}-\d{2}", tail[:600]), \
-        f"{skill.name}: 'Verified against' section carries no ISO date"
+        f"{skill.parent.name}: 'Verified against' section carries no ISO date"

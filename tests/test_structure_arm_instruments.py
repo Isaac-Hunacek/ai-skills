@@ -19,7 +19,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 RELEASES = ROOT / ".releases"
 TRANCHE = RELEASES / "arm-instruments" / "1.0"
 SKILLS = sorted(RELEASES.glob("arm-instrument-*/1.0"))
-IDS = [p.name for p in SKILLS]
+IDS = [p.parent.name for p in SKILLS]
 
 pytestmark = pytest.mark.skipif(not TRANCHE.exists(),
                                 reason="arm-instruments tranche not in this repo")
@@ -31,7 +31,7 @@ def catalog():
 
 
 def code_of(skill):
-    return skill.name[len("arm-instrument-"):]
+    return skill.parent.name[len("arm-instrument-"):]
 
 
 def inventory(skill):
@@ -59,18 +59,18 @@ def test_ships_its_inventory_or_says_why_not(skill):
     has_inv = (skill / "example_inventory.json").exists()
     if has_inv:
         assert not unverified(skill), \
-            f"{skill.name}: ships an inventory but also claims no example was verified"
+            f"{skill.parent.name}: ships an inventory but also claims no example was verified"
         return
     text = (skill / "SKILL.md").read_text()
     assert unverified(skill), \
-        f"{skill.name}: no example_inventory.json and no statement that none was verified"
+        f"{skill.parent.name}: no example_inventory.json and no statement that none was verified"
     cat = catalog()[code_of(skill)]
     assert cat["no_example_reason"], \
-        f"{skill.name}: catalog.csv carries no reason for the missing example"
+        f"{skill.parent.name}: catalog.csv carries no reason for the missing example"
     assert cat["example_verified"] in ("False", "false"), \
-        f"{skill.name}: catalog says example_verified={cat['example_verified']!r} but no inventory shipped"
+        f"{skill.parent.name}: catalog says example_verified={cat['example_verified']!r} but no inventory shipped"
     for claim in ("### Variables in that file", "Measured on the example file"):
-        assert claim not in text, f"{skill.name}: claims {claim!r} with no verified example"
+        assert claim not in text, f"{skill.parent.name}: claims {claim!r} with no verified example"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -80,22 +80,22 @@ def test_credits_the_handbook_authors(skill):
     is the one defect here that is not merely inaccurate.
     """
     text = (skill / "SKILL.md").read_text()
-    assert "## Credit" in text, f"{skill.name}: no Credit section"
+    assert "## Credit" in text, f"{skill.parent.name}: no Credit section"
     m = re.search(r"## Credit\n(.*?)(?:\n## )", text, re.S)
-    assert m, f"{skill.name}: Credit section is empty"
+    assert m, f"{skill.parent.name}: Credit section is empty"
     block = m.group(1)
     authors = [a.strip() for a in (catalog()[code_of(skill)]["authors"] or "").split(";") if a.strip()]
     if authors:
         missing = [a for a in authors if a not in block]
-        assert not missing, f"{skill.name}: Credit section omits {missing}"
+        assert not missing, f"{skill.parent.name}: Credit section omits {missing}"
         assert "instrument mentor" in block, \
-            f"{skill.name}: Credit names authors but not their role"
+            f"{skill.parent.name}: Credit names authors but not their role"
     else:
         assert "names no individual author" in block, (
-            f"{skill.name}: no authors in catalog.csv and no statement that the handbook "
+            f"{skill.parent.name}: no authors in catalog.csv and no statement that the handbook "
             f"cover names none")
     assert "Cite the handbook, not this skill" in block, \
-        f"{skill.name}: Credit section does not tell the reader what to cite"
+        f"{skill.parent.name}: Credit section does not tell the reader what to cite"
 
 
 def test_every_skill_with_authors_is_credited_in_the_catalog():
@@ -108,7 +108,7 @@ def test_every_skill_with_authors_is_credited_in_the_catalog():
         block = re.search(r"## Credit\n(.*?)(?:\n## )", (skill / "SKILL.md").read_text(), re.S)
         named = bool(block and "names no individual author" not in block.group(1))
         if named and not (row["authors"] or "").strip():
-            thin.append(skill.name)
+            thin.append(skill.parent.name)
     assert not thin, f"skills crediting authors that catalog.csv does not record: {thin}"
 
 
@@ -122,17 +122,17 @@ def test_shared_handbook_carries_a_scope_note(skill):
         return
     text = (skill / "SKILL.md").read_text()
     assert "Scope of this handbook" in text, \
-        f"{skill.name}: shares its handbook with {siblings} but carries no scope note"
+        f"{skill.parent.name}: shares its handbook with {siblings} but carries no scope note"
     for s in siblings:
-        assert f"`{s}`" in text, f"{skill.name}: scope note does not name sibling {s}"
+        assert f"`{s}`" in text, f"{skill.parent.name}: scope note does not name sibling {s}"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
 def test_code_is_in_catalog(skill):
     cat = catalog()
     code = code_of(skill)
-    assert code in cat, f"{skill.name}: {code!r} is not an ARM instrument class code"
-    assert cat[code]["skill"] == skill.name, \
+    assert code in cat, f"{skill.parent.name}: {code!r} is not an ARM instrument class code"
+    assert cat[code]["skill"] == skill.parent.name, \
         f"catalog.csv skill column says {cat[code]['skill']!r} for {code}"
 
 
@@ -152,8 +152,8 @@ def test_handbook_url_matches_catalog(skill):
     text = (skill / "SKILL.md").read_text()
     urls = set(re.findall(r"https://www\.arm\.gov/publications/tech_reports/[^\s)\]]+", text))
     expected = catalog()[code_of(skill)]["pdf"]
-    assert expected, f"{skill.name}: catalog has no handbook PDF for this code"
-    assert expected in urls, f"{skill.name}: links {sorted(urls)}, catalog says {expected}"
+    assert expected, f"{skill.parent.name}: catalog has no handbook PDF for this code"
+    assert expected in urls, f"{skill.parent.name}: links {sorted(urls)}, catalog says {expected}"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -165,12 +165,12 @@ def test_example_datastream_is_consistent(skill):
     inv = inventory(skill)
     ds = inv["datastream"]
     assert catalog()[code_of(skill)]["ex_datastream"] == ds, \
-        f"{skill.name}: catalog.csv example disagrees with the inventory ({ds})"
-    assert ds in text, f"{skill.name}: SKILL.md never names the verified datastream {ds}"
+        f"{skill.parent.name}: catalog.csv example disagrees with the inventory ({ds})"
+    assert ds in text, f"{skill.parent.name}: SKILL.md never names the verified datastream {ds}"
     assert inv["filename"] in text, \
-        f"{skill.name}: SKILL.md does not name the verified file {inv['filename']}"
+        f"{skill.parent.name}: SKILL.md does not name the verified file {inv['filename']}"
     assert inv["filename"].startswith(ds.split(".")[0]), \
-        f"{skill.name}: file {inv['filename']} is not from datastream {ds}"
+        f"{skill.parent.name}: file {inv['filename']} is not from datastream {ds}"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -189,9 +189,9 @@ def test_variables_cited_exist_in_the_file(skill):
     if not m:
         pytest.skip("no variable table in this skill")
     cited = set(re.findall(r"^\|\s*`([A-Za-z0-9_]+)`\s*\|", m.group(1), re.M))
-    assert cited, f"{skill.name}: variable table present but no variables parsed"
+    assert cited, f"{skill.parent.name}: variable table present but no variables parsed"
     missing = sorted(cited - present)
-    assert not missing, f"{skill.name}: SKILL.md cites variables absent from the file: {missing}"
+    assert not missing, f"{skill.parent.name}: SKILL.md cites variables absent from the file: {missing}"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -202,9 +202,9 @@ def test_variable_and_qc_counts_match_inventory(skill):
     inv = inventory(skill)
     for label, key in [("Data variables", "n_vars"), ("QC variables", "n_qc_vars")]:
         m = re.search(rf"\|\s*{label}\s*\|\s*(\d+)", text)
-        assert m, f"{skill.name}: no '{label}' row in the data table"
+        assert m, f"{skill.parent.name}: no '{label}' row in the data table"
         assert int(m.group(1)) == inv[key], \
-            f"{skill.name}: SKILL.md says {label}={m.group(1)}, inventory says {inv[key]}"
+            f"{skill.parent.name}: SKILL.md says {label}={m.group(1)}, inventory says {inv[key]}"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -212,11 +212,11 @@ def test_page_citations_are_within_the_handbook(skill):
     """`hb p. N` must point at a page the handbook actually has."""
     text = (skill / "SKILL.md").read_text()
     m = re.search(r"`hb p\. N`,\s*(\d+)\s*pages", text)
-    assert m, f"{skill.name}: header does not state the handbook page count"
+    assert m, f"{skill.parent.name}: header does not state the handbook page count"
     n_pages = int(m.group(1))
     cited = [int(x) for x in re.findall(r"hb p\.\s*(\d+)", text)]
     bad = sorted({p for p in cited if p < 1 or p > n_pages})
-    assert not bad, f"{skill.name}: page citations outside 1-{n_pages}: {bad}"
+    assert not bad, f"{skill.parent.name}: page citations outside 1-{n_pages}: {bad}"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -226,7 +226,7 @@ def test_has_the_sections_that_earn_the_skill(skill):
     for heading in ("## How it measures", "## The data", "## Getting the data",
                     "## Quality control in this datastream",
                     "## Known artifacts and failure modes", "## Verified against"):
-        assert heading in text, f"{skill.name}: missing section {heading!r}"
+        assert heading in text, f"{skill.parent.name}: missing section {heading!r}"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -240,7 +240,7 @@ def test_no_unsourced_artifact_rows(skill):
     rows = [r for r in m.group(1).splitlines()
             if r.startswith("|") and not r.startswith("|---") and "how it shows up" not in r]
     unsourced = [r[:70] for r in rows if not re.search(r"(hb p\.\s*\d+|\|\s*-\s*\|)", r)]
-    assert not unsourced, f"{skill.name}: artifact rows with no source: {unsourced}"
+    assert not unsourced, f"{skill.parent.name}: artifact rows with no source: {unsourced}"
 
 
 def test_kernel_resolves_every_shipped_skill():
@@ -252,7 +252,7 @@ def test_kernel_resolves_every_shipped_skill():
     assert len(rows) > 400, f"catalog.csv looks truncated: {len(rows)} rows"
     for skill in SKILLS:
         code = code_of(skill)
-        assert ns["arm_skill_for"](code) == skill.name
+        assert ns["arm_skill_for"](code) == skill.parent.name
         rec = ns["arm_instrument"](code)
         assert rec and rec["name"], f"arm_instrument({code!r}) returned nothing"
         if not unverified(skill):
@@ -281,10 +281,10 @@ def test_parent_handbook_is_declared(skill):
         return
     text = (skill / "SKILL.md").read_text()
     assert "ARM links no handbook to this class" in text, \
-        f"{skill.name}: uses a parent handbook but does not declare it"
+        f"{skill.parent.name}: uses a parent handbook but does not declare it"
     if row.get("handbook_coverage") == "parent-system-level":
         assert "every fact in this skill is" in text and "parent-system-level" in text, \
-            f"{skill.name}: handbook never names this class, but the skill does not say so"
+            f"{skill.parent.name}: handbook never names this class, but the skill does not say so"
 
 
 def test_rejected_classes_ship_no_skill():

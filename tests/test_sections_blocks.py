@@ -18,7 +18,7 @@ import sections  # noqa: E402
 
 ARM = sorted(list((ROOT / ".releases").glob("arm-instrument-*/1.0"))
              + list((ROOT / ".releases").glob("arm-vap-*/1.0")))
-IDS = [p.name for p in ARM]
+IDS = [p.parent.name for p in ARM]
 FETCH = re.compile(r'files = act\.discovery\.download_arm_data\(user, token, "([^"]+)", "([^"]+)", "\2"\)')
 
 
@@ -27,20 +27,20 @@ def test_fetch_block_is_generated(skill):
     text = (skill / "SKILL.md").read_text()
     m = FETCH.search(text)
     if not m:  # the handful with no verified example show a size probe instead
-        assert "armlive/livedata/query" in text, f"{skill.name}: no way to get data at all"
+        assert "armlive/livedata/query" in text, f"{skill.parent.name}: no way to get data at all"
         pytest.skip("no-example skill: size probe only")
     assert sections.fetch_block(*m.groups()) in text, (
-        f"{skill.name}: fetch block differs from sections.fetch_block() - regenerate it")
+        f"{skill.parent.name}: fetch block differs from sections.fetch_block() - regenerate it")
 
 
 @pytest.mark.parametrize("skill", ARM, ids=IDS)
 def test_helper_note_present_and_truthful(skill):
     """Every skill names the convenience wrappers exactly once, labelled as not-ACT."""
     text = (skill / "SKILL.md").read_text()
-    assert sections.HELPER_NOTE in text, f"{skill.name}: helper note missing or edited"
+    assert sections.HELPER_NOTE in text, f"{skill.parent.name}: helper note missing or edited"
     for helper in ("armlive_open", "armlive_list_files", "act_qc_table", "act_qc_apply"):
         assert text.count(helper) == 1, (
-            f"{skill.name}: `{helper}` appears {text.count(helper)} times; it belongs only in "
+            f"{skill.parent.name}: `{helper}` appears {text.count(helper)} times; it belongs only in "
             f"the note that says it is not part of ACT")
 
 
@@ -55,6 +55,6 @@ def test_qc_block_uses_variables_that_exist(skill):
     named = set(re.findall(r'ds\.qcfilter\.datafilter\(variables=\[([^\]]*)\]', text))
     for group in named:
         for v in re.findall(r'"([^"]+)"', group):
-            assert v in present, f"{skill.name}: QC example filters `{v}`, absent from the example file"
+            assert v in present, f"{skill.parent.name}: QC example filters `{v}`, absent from the example file"
     for v in re.findall(r'ds\["(qc_[^"]+)"\]', text):
-        assert v in present, f"{skill.name}: QC example reads `{v}`, absent from the example file"
+        assert v in present, f"{skill.parent.name}: QC example reads `{v}`, absent from the example file"

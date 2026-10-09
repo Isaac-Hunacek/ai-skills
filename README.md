@@ -14,11 +14,11 @@ the offline suite refuses documentation that has drifted from its own code.
 
 | skill | what it does |
 |---|---|
-| [`nexrad-aws-2025`](skills/nexrad-aws-2025/) | NEXRAD on AWS after the 2025 migration: bucket map, VCP/SAILS/AVSET detection, ARCO access primitives |
-| [`nexrad-cloud-router`](skills/nexrad-cloud-router/) | Chooses among the four NEXRAD access paths on measured cost, and names the skill to load per step |
-| [`nexrad-cost-calibration`](skills/nexrad-cost-calibration/) | Re-measures those cost constants for the local machine and link |
-| [`nexrad-arco`](skills/nexrad-arco/) | ARCO Icechunk/Zarr store to Py-ART; QVPs, METAR overlays, animations |
-| [`nexrad-radar-gcs`](skills/nexrad-radar-gcs/) | GCS mirror fallback when AWS is blocked, plus PPI / dual-pol plotting helpers |
+| [`nexrad-aws-2025`](.releases/nexrad-aws-2025/1.0/) | NEXRAD on AWS after the 2025 migration: bucket map, VCP/SAILS/AVSET detection, ARCO access primitives |
+| [`nexrad-cloud-router`](.releases/nexrad-cloud-router/1.0/) | Chooses among the four NEXRAD access paths on measured cost, and names the skill to load per step |
+| [`nexrad-cost-calibration`](.releases/nexrad-cost-calibration/1.0/) | Re-measures those cost constants for the local machine and link |
+| [`nexrad-arco`](.releases/nexrad-arco/1.0/) | ARCO Icechunk/Zarr store to Py-ART; QVPs, METAR overlays, animations |
+| [`nexrad-radar-gcs`](.releases/nexrad-radar-gcs/1.0/) | GCS mirror fallback when AWS is blocked, plus PPI / dual-pol plotting helpers |
 
 The first tranche — NEXRAD cloud access and routing — chosen because the 2025
 bucket migration broke most existing code and these five cross-reference each
@@ -28,13 +28,13 @@ other.
 
 | skill | what it does |
 |---|---|
-| [`pyart-foundations`](skills/pyart-foundations/) | The `Radar` object, scan anatomy and split-cut handling, field naming, the `extract_sweeps` sweep_number trap, IO and xradar interop. Router for the rest |
-| [`pyart-mapping`](skills/pyart-mapping/) | Projection semantics, the `PlateCarree`-vs-`Geodetic` datum trap, cone-of-silence georeferencing verification, geodesic range rings, `grid_origin` |
-| [`pyart-gatefilter-qc`](skills/pyart-gatefilter-qc/) | `GateFilter` semantics and its five silent traps, marginal cost per criterion, measured downstream sensitivity |
-| [`pyart-velocity-dealias`](skills/pyart-velocity-dealias/) | The three dealiasers, velocity texture, Nyquist handling, reference-velocity paths and their unbounded extrapolation |
-| [`pyart-dualpol-phase`](skills/pyart-dualpol-phase/) | KDP method selection on measured cost and plausibility, PhiDP unfolding, attenuation correction, the LP solver crash |
-| [`pyart-gridding`](skills/pyart-gridding/) | `grid_from_radars`, radius-of-influence selection by holdout cross-validation, weighting choice, multi-radar and `GateMapper` |
-| [`pyart-retrievals`](skills/pyart-retrievals/) | QPE, echo classification, hydrometeor ID, the dependency order the errors do not name, CAPPI/QVP/CFAD products |
+| [`pyart-foundations`](.releases/pyart-foundations/1.0/) | The `Radar` object, scan anatomy and split-cut handling, field naming, the `extract_sweeps` sweep_number trap, IO and xradar interop. Router for the rest |
+| [`pyart-mapping`](.releases/pyart-mapping/1.0/) | Projection semantics, the `PlateCarree`-vs-`Geodetic` datum trap, cone-of-silence georeferencing verification, geodesic range rings, `grid_origin` |
+| [`pyart-gatefilter-qc`](.releases/pyart-gatefilter-qc/1.0/) | `GateFilter` semantics and its five silent traps, marginal cost per criterion, measured downstream sensitivity |
+| [`pyart-velocity-dealias`](.releases/pyart-velocity-dealias/1.0/) | The three dealiasers, velocity texture, Nyquist handling, reference-velocity paths and their unbounded extrapolation |
+| [`pyart-dualpol-phase`](.releases/pyart-dualpol-phase/1.0/) | KDP method selection on measured cost and plausibility, PhiDP unfolding, attenuation correction, the LP solver crash |
+| [`pyart-gridding`](.releases/pyart-gridding/1.0/) | `grid_from_radars`, radius-of-influence selection by holdout cross-validation, weighting choice, multi-radar and `GateMapper` |
+| [`pyart-retrievals`](.releases/pyart-retrievals/1.0/) | QPE, echo classification, hydrometeor ID, the dependency order the errors do not name, CAPPI/QVP/CFAD products |
 
 Measured against Py-ART 2.2.5 on two radar classes, because most Py-ART surprises
 come from assuming one when you have the other: **NEXRAD WSR-88D** (KIWA
@@ -47,7 +47,7 @@ elevation, uniform 16.52 m/s Nyquist, NCP present).
 
 | skill | what it does |
 |---|---|
-| [`cmac-vap`](skills/cmac-vap/) | The ARM CMAC 2.0 VAP: config system, fuzzy gate classification, sounding ingest, clutter retrieval |
+| [`cmac-vap`](.releases/cmac-vap/1.0/) | The ARM CMAC 2.0 VAP: config system, fuzzy gate classification, sounding ingest, clutter retrieval |
 
 `cmac-vap` is deliberately **not** part of the Py-ART tranche. CMAC is a consumer
 of Py-ART, so what it teaches about idiomatic Py-ART usage — call order, which
@@ -61,7 +61,7 @@ that boundary.
 
 | skill | what it does |
 |---|---|
-| [`arm-netcdf-standards`](skills/arm-netcdf-standards/) | The ARM Data File Standards (DOE/SC-ARM-15-004 v1.3) made operational: filename and datastream construction, the `base_time`/`time_offset`/`time` triple, coordinate and location variables, required attributes, bit-packed QC, state and source variables, global attributes. Ships `arm_standards_check.py`, a rule engine that cites the section behind every finding, and helpers that write a compliant file rather than retrofit one |
+| [`arm-netcdf-standards`](.releases/arm-netcdf-standards/1.0/) | The ARM Data File Standards (DOE/SC-ARM-15-004 v1.3) made operational: filename and datastream construction, the `base_time`/`time_offset`/`time` triple, coordinate and location variables, required attributes, bit-packed QC, state and source variables, global attributes. Ships `arm_standards_check.py`, a rule engine that cites the section behind every finding, and helpers that write a compliant file rather than retrofit one |
 
 Calibrating this one against released ARM data changed it. Run against one file
 from each of 143 local datastreams, five rules turned out to be wrong rather
@@ -82,7 +82,7 @@ directory:
 
 | skill | what it does |
 |---|---|
-| [`arm-instruments`](skills/arm-instruments/) | The index and access layer: ARM's data-source catalog API (the only complete enumeration — `arm.gov/capabilities/instruments` is a JS shell and there is no sitemap), the two URL patterns handbooks are filed under, and helpers resolving an instrument code to its handbook, datastreams and verified example. Ships `catalog.csv`, all 594 ARM instrument classes |
+| [`arm-instruments`](.releases/arm-instruments/1.0/) | The index and access layer: ARM's data-source catalog API (the only complete enumeration — `arm.gov/capabilities/instruments` is a JS shell and there is no sitemap), the two URL patterns handbooks are filed under, and helpers resolving an instrument code to its handbook, datastreams and verified example. Ships `catalog.csv`, all 594 ARM instrument classes |
 | `arm-instrument-<code>` × 128 | One per instrument: measurement principle, reported quantities with ranges and uncertainties, specifications, calibration, embedded-QC coverage, the variable inventory of a real file, and the known artifacts and failure modes the mentor documented — 1519 of them across the tranche |
 
 Coverage by category: Aerosols 36, Cloud Properties 29, Radiometric 29, Airborne 25,
@@ -136,7 +136,7 @@ grounding rule as the instrument skills:
 
 | skill | what it does |
 |---|---|
-| [`arm-vaps`](skills/arm-vaps/) | The index: coverage by category, the honesty markers explained, and how to route between a product and its input instrument |
+| [`arm-vaps`](.releases/arm-vaps/1.0/) | The index: coverage by category, the honesty markers explained, and how to route between a product and its input instrument |
 | `arm-vap-<code>` × 80 | One per product: the retrieval algorithm, declared input instruments, reported quantities, retrieval settings, embedded-QC coverage measured on a real file, the variable inventory, and the documented conditions where the retrieval is invalid or biased — 1029 of them across the tranche |
 
 ARSCL, KAZR-ARSCL, MWRRET, QCRAD, MICROBASE, LASSO, VARANAL, RADFLUXANAL, PBLHT, the AOD
@@ -166,8 +166,8 @@ turned out to document the SAS-He AOD product rather than the MFRSR/NIMFR one it
 
 | skill | what it does |
 |---|---|
-| [`rustmatrix-scattering`](skills/rustmatrix-scattering/) | T-matrix scattering for nonspherical hydrometeors: `Scatterer`, polarimetric observables, PSD tabulation, orientation averaging, `HydroMix`. Carries the axis-ratio convention the upstream docs invert, the solver's convergence envelope, and the paths that return silently wrong numbers |
-| [`rustmatrix-spectra`](skills/rustmatrix-spectra/) | The Doppler and polarimetric spectra engine: `SpectralIntegrator`, fall-speed presets and their real validity limits, turbulence and beam broadening, receiver noise, `BeamIntegrator` over a scene |
+| [`rustmatrix-scattering`](.releases/rustmatrix-scattering/1.0/) | T-matrix scattering for nonspherical hydrometeors: `Scatterer`, polarimetric observables, PSD tabulation, orientation averaging, `HydroMix`. Carries the axis-ratio convention the upstream docs invert, the solver's convergence envelope, and the paths that return silently wrong numbers |
+| [`rustmatrix-spectra`](.releases/rustmatrix-spectra/1.0/) | The Doppler and polarimetric spectra engine: `SpectralIntegrator`, fall-speed presets and their real validity limits, turbulence and beam broadening, receiver noise, `BeamIntegrator` over a scene |
 
 [rustmatrix](https://github.com/swnesbitt/rustmatrix) is by **Prof. Stephen W.
 Nesbitt** (University of Illinois Urbana-Champaign) — a Rust-backed replacement
@@ -197,52 +197,52 @@ tranche; until then those cross-references point at nothing in this repo.
 
 | skill | what it does |
 |---|---|
-| [`act-arm-live`](skills/act-arm-live/) | ARM Live Data Webservice via `act-atmos`: datastream naming, the server-side concatenate/subset `mod` endpoint, DOI citation lookup, `read_arm_netcdf`. The access layer the 232 instrument and VAP skills assume |
-| [`act-qc`](skills/act-qc/) | ARM's embedded QC flags: the bit-packed-to-CF cleanup everything depends on, the `ds.qcfilter` accessor, Data Quality Report ingestion, QC summary variables |
-| [`act-retrievals`](skills/act-retrievals/) | Derived quantities from ARM data: sonde precipitable water, CAPE/CIN, Liu-Liang and Heffter PBL height, lidar PBL and Sobel cloud base, Doppler-lidar VAD winds, instrument corrections |
-| [`act-plotting`](skills/act-plotting/) | The ACT Display family: `TimeSeriesDisplay` with QC block plots and day/night shading, `SkewTDisplay`, `WindRoseDisplay`, `DistributionDisplay` |
+| [`act-arm-live`](.releases/act-arm-live/1.0/) | ARM Live Data Webservice via `act-atmos`: datastream naming, the server-side concatenate/subset `mod` endpoint, DOI citation lookup, `read_arm_netcdf`. The access layer the 232 instrument and VAP skills assume |
+| [`act-qc`](.releases/act-qc/1.0/) | ARM's embedded QC flags: the bit-packed-to-CF cleanup everything depends on, the `ds.qcfilter` accessor, Data Quality Report ingestion, QC summary variables |
+| [`act-retrievals`](.releases/act-retrievals/1.0/) | Derived quantities from ARM data: sonde precipitable water, CAPE/CIN, Liu-Liang and Heffter PBL height, lidar PBL and Sobel cloud base, Doppler-lidar VAD winds, instrument corrections |
+| [`act-plotting`](.releases/act-plotting/1.0/) | The ACT Display family: `TimeSeriesDisplay` with QC block plots and day/night shading, `SkewTDisplay`, `WindRoseDisplay`, `DistributionDisplay` |
 
 ### KDP physics and retrieval
 
 | skill | what it does |
 |---|---|
-| [`kdp-physics-anchor`](skills/kdp-physics-anchor/) | Physics-first constraints for designing or scoring a KDP retrieval: the T-matrix-verified separability, the predicted KDP-core / Z-core width ratio as a falsification test, verified drop-shape polynomials |
-| [`kdp-structure-priors`](skills/kdp-structure-priors/) | Priors for the shape, size, amplitude and sign of KDP structures — columns, cores and feet, dendritic-growth bands, negative KDP aloft — with the artifacts that imitate each |
-| [`kdp-retrieval-cautionary-tale`](skills/kdp-retrieval-cautionary-tale/) | Failure modes and physical acceptance tests. Documents an oversmoothed, physically impossible field that passed every internal check |
+| [`kdp-physics-anchor`](.releases/kdp-physics-anchor/1.0/) | Physics-first constraints for designing or scoring a KDP retrieval: the T-matrix-verified separability, the predicted KDP-core / Z-core width ratio as a falsification test, verified drop-shape polynomials |
+| [`kdp-structure-priors`](.releases/kdp-structure-priors/1.0/) | Priors for the shape, size, amplitude and sign of KDP structures — columns, cores and feet, dendritic-growth bands, negative KDP aloft — with the artifacts that imitate each |
+| [`kdp-retrieval-cautionary-tale`](.releases/kdp-retrieval-cautionary-tale/1.0/) | Failure modes and physical acceptance tests. Documents an oversmoothed, physically impossible field that passed every internal check |
 
 ### Radar analysis and event detection
 
 | skill | what it does |
 |---|---|
-| [`nexrad-site-rainfall`](skills/nexrad-site-rainfall/) | Detect and quantify rainfall over a fixed ground site from Level II: event tabulation, Marshall-Palmer Z-R, accumulation over weeks to months |
-| [`nexrad-area-over-threshold`](skills/nexrad-area-over-threshold/) | Storm coverage and organisation rather than point intensity: area exceeding rain-rate bins, area-over-threshold time series |
-| [`nexrad-decade-archive`](skills/nexrad-decade-archive/) | Multi-year Level II to analysis-ready Zarr: case screening, codec choice on constrained filesystems, bit-exact int16 round-trip verification, resumable checkpointing |
-| [`radar-cell-tracking`](skills/radar-cell-tracking/) | Convective cell tracking with tobac: feature detection, watershed segmentation, trackpy linking, multi-threshold ladders, the `weighted_diff` denominator |
-| [`radar-advection-interpolation`](skills/radar-advection-interpolation/) | Temporal interpolation between volumes by TV-L1 optical-flow advection on native gate geometry |
-| [`gpm-storm-targeted-radar-fetch`](skills/gpm-storm-targeted-radar-fetch/) | GPM DPR overpasses as the storm detector over a ground-radar domain, then fetch only the matching volumes |
+| [`nexrad-site-rainfall`](.releases/nexrad-site-rainfall/1.0/) | Detect and quantify rainfall over a fixed ground site from Level II: event tabulation, Marshall-Palmer Z-R, accumulation over weeks to months |
+| [`nexrad-area-over-threshold`](.releases/nexrad-area-over-threshold/1.0/) | Storm coverage and organisation rather than point intensity: area exceeding rain-rate bins, area-over-threshold time series |
+| [`nexrad-decade-archive`](.releases/nexrad-decade-archive/1.0/) | Multi-year Level II to analysis-ready Zarr: case screening, codec choice on constrained filesystems, bit-exact int16 round-trip verification, resumable checkpointing |
+| [`radar-cell-tracking`](.releases/radar-cell-tracking/1.0/) | Convective cell tracking with tobac: feature detection, watershed segmentation, trackpy linking, multi-threshold ladders, the `weighted_diff` denominator |
+| [`radar-advection-interpolation`](.releases/radar-advection-interpolation/1.0/) | Temporal interpolation between volumes by TV-L1 optical-flow advection on native gate geometry |
+| [`gpm-storm-targeted-radar-fetch`](.releases/gpm-storm-targeted-radar-fetch/1.0/) | GPM DPR overpasses as the storm detector over a ground-radar domain, then fetch only the matching volumes |
 
 ### MRMS
 
 | skill | what it does |
 |---|---|
-| [`mrms-hourly-conus`](skills/mrms-hourly-conus/) | The CONUS hourly analysis as analysis-ready Zarr (dynamical.org Icechunk store): gauge-corrected and radar-only QPE, precipitation type, FLASH ratios |
-| [`mrms-case-detection`](skills/mrms-case-detection/) | Find heavy-rain hours over a fixed site from gauge-corrected QPE, confirm against ASOS / mPING / CoCoRaHS / HADS, then retrieve and classify the radar volumes |
+| [`mrms-hourly-conus`](.releases/mrms-hourly-conus/1.0/) | The CONUS hourly analysis as analysis-ready Zarr (dynamical.org Icechunk store): gauge-corrected and radar-only QPE, precipitation type, FLASH ratios |
+| [`mrms-case-detection`](.releases/mrms-case-detection/1.0/) | Find heavy-rain hours over a fixed site from gauge-corrected QPE, confirm against ASOS / mPING / CoCoRaHS / HADS, then retrieve and classify the radar volumes |
 
 ### Land-atmosphere exchange
 
 | skill | what it does |
 |---|---|
-| [`domain-et-inference`](skills/domain-et-inference/) | Inferring evapotranspiration over large domains: the four method families, their disagreement envelope, and which to trust where |
-| [`cropland-et-measurement`](skills/cropland-et-measurement/) | Measuring ET over managed croplands: eddy-covariance corrections, the energy-balance closure gap and its four residual conventions, flux footprints and tower-to-pixel bias |
+| [`domain-et-inference`](.releases/domain-et-inference/1.0/) | Inferring evapotranspiration over large domains: the four method families, their disagreement envelope, and which to trust where |
+| [`cropland-et-measurement`](.releases/cropland-et-measurement/1.0/) | Measuring ET over managed croplands: eddy-covariance corrections, the energy-balance closure gap and its four residual conventions, flux footprints and tower-to-pixel bias |
 
 ### Field-campaign workflows
 
 | skill | what it does |
 |---|---|
-| [`arm-site-week-survey`](skills/arm-site-week-survey/) | Survey a week at an ARM site across instruments before committing to a case |
-| [`arm-dualpol-calibration`](skills/arm-dualpol-calibration/) | Dual-polarisation calibration checks on ARM scanning radars |
-| [`arm-bnf-storm-case-study`](skills/arm-bnf-storm-case-study/) | Bankhead National Forest storm case study, end to end |
-| [`severe-weather-event-context`](skills/severe-weather-event-context/) | Place a severe event in climatological context: storm reports and damage paths, HRRR mesoscale environment, moisture back-trajectories, river-gauge response |
+| [`arm-site-week-survey`](.releases/arm-site-week-survey/1.0/) | Survey a week at an ARM site across instruments before committing to a case |
+| [`arm-dualpol-calibration`](.releases/arm-dualpol-calibration/1.0/) | Dual-polarisation calibration checks on ARM scanning radars |
+| [`arm-bnf-storm-case-study`](.releases/arm-bnf-storm-case-study/1.0/) | Bankhead National Forest storm case study, end to end |
+| [`severe-weather-event-context`](.releases/severe-weather-event-context/1.0/) | Place a severe event in climatological context: storm reports and damage paths, HRRR mesoscale environment, moisture back-trajectories, river-gauge response |
 
 ### DERECHOS campaign
 
@@ -253,21 +253,21 @@ Research Farm (SERF), Crawfordsville; S1 is the Muscatine Island Research Farm
 
 | skill | what it does |
 |---|---|
-| [`derechos-campaign`](skills/derechos/derechos-campaign/) | The campaign reference: hypotheses H1-H4, science questions SQ1-SQ7, the science traceability matrix, the array components and site roles |
-| [`derechos-data-sources`](skills/derechos/derechos-data-sources/) | Tested regional access: ARM Live, IEM mesonet, Illinois Climate Network, KDVN and KLOT, CropScape, AmeriFlux, Sentinel-2, mPING, HRRR. Carries the site coordinates and KDVN geometry |
-| [`derechos-soil-properties`](skills/derechos/derechos-soil-properties/) | ISUSM soil moisture and temperature in full including SoilVue profiles, a network-wide sensor health audit, AWDB/SCAN, and SSURGO properties |
-| [`derechos-hydrology`](skills/derechos/derechos-hydrology/) | Stream gauges, river stage and streamflow: USGS NWIS and the OGC API, NWPS flood categories, Iowa Flood Center, National Water Model |
-| [`derechos-landuse-imagery`](skills/derechos/derechos-landuse-imagery/) | Land cover and imagery: Planet, NASA Earthdata and HLS, Cropland Data Layer, NLCD, LCMAP |
-| [`derechos-domain-et-data`](skills/derechos/derechos-domain-et-data/) | Evapotranspiration and surface flux over the domain: 31 ranked sources with the traps that silently return wrong ET |
-| [`derechos-storm-database`](skills/derechos/derechos-storm-database/) | Severe-storm and derecho report databases: NCEI Storm Events, SPC WCM and the derecho archive, IEM local storm reports, damage paths |
-| [`derechos-iowa-dot`](skills/derechos/derechos-iowa-dot/) | Iowa DOT road-weather: RWIS pavement condition live and archived, 511, plow AVL and imagery, crash records, traffic counts |
-| [`derechos-iop-scorecard`](skills/derechos/derechos-iop-scorecard/) | Executable IOP scorecard: scores a forecast per science question, assigns an archetype, and makes a GO/HOLD call against the IOP budget |
+| [`derechos-campaign`](.releases/derechos-campaign/1.0/) | The campaign reference: hypotheses H1-H4, science questions SQ1-SQ7, the science traceability matrix, the array components and site roles |
+| [`derechos-data-sources`](.releases/derechos-data-sources/1.0/) | Tested regional access: ARM Live, IEM mesonet, Illinois Climate Network, KDVN and KLOT, CropScape, AmeriFlux, Sentinel-2, mPING, HRRR. Carries the site coordinates and KDVN geometry |
+| [`derechos-soil-properties`](.releases/derechos-soil-properties/1.0/) | ISUSM soil moisture and temperature in full including SoilVue profiles, a network-wide sensor health audit, AWDB/SCAN, and SSURGO properties |
+| [`derechos-hydrology`](.releases/derechos-hydrology/1.0/) | Stream gauges, river stage and streamflow: USGS NWIS and the OGC API, NWPS flood categories, Iowa Flood Center, National Water Model |
+| [`derechos-landuse-imagery`](.releases/derechos-landuse-imagery/1.0/) | Land cover and imagery: Planet, NASA Earthdata and HLS, Cropland Data Layer, NLCD, LCMAP |
+| [`derechos-domain-et-data`](.releases/derechos-domain-et-data/1.0/) | Evapotranspiration and surface flux over the domain: 31 ranked sources with the traps that silently return wrong ET |
+| [`derechos-storm-database`](.releases/derechos-storm-database/1.0/) | Severe-storm and derecho report databases: NCEI Storm Events, SPC WCM and the derecho archive, IEM local storm reports, damage paths |
+| [`derechos-iowa-dot`](.releases/derechos-iowa-dot/1.0/) | Iowa DOT road-weather: RWIS pavement condition live and archived, 511, plow AVL and imagery, crash records, traffic counts |
+| [`derechos-iop-scorecard`](.releases/derechos-iop-scorecard/1.0/) | Executable IOP scorecard: scores a forecast per science question, assigns an archetype, and makes a GO/HOLD call against the IOP budget |
 
 ### Numerical practice
 
 | skill | what it does |
 |---|---|
-| [`backend-swap-validation`](skills/backend-swap-validation/) | Validate replacing a hand-rolled numerical kernel with a library implementation behind an optional-dependency engine layer |
+| [`backend-swap-validation`](.releases/backend-swap-validation/1.0/) | Validate replacing a hand-rolled numerical kernel with a library implementation behind an optional-dependency engine layer |
 
 ## Using a skill
 
@@ -283,7 +283,7 @@ Without it, `SKILL.md` is readable on its own and `kernel.py` imports as an
 ordinary module:
 
 ```python
-import sys; sys.path.insert(0, "skills/nexrad-aws-2025")
+import sys; sys.path.insert(0, ".releases/nexrad-aws-2025/1.0")
 import kernel as nexrad
 keys = nexrad.nexrad_keys("KLOT", start, end, client=nexrad.s3_anon())
 ```
@@ -330,7 +330,7 @@ failing scheduled run rather than as a wrong answer in someone's analysis.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). In short: edit under `skills/`, run the
+See [CONTRIBUTING.md](CONTRIBUTING.md). In short: edit under `.releases/<skill-name>/1.0/`, run the
 offline suite, and keep every numeric claim in a `SKILL.md` derived from
 something a test can check.
 

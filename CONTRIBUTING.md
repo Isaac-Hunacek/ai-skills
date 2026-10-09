@@ -3,8 +3,9 @@
 ## Layout
 
 ```
-skills/<skill-name>/SKILL.md     prose the agent loads (YAML frontmatter: name, description)
-skills/<skill-name>/kernel.py    helpers, exec'd into the kernel when the skill loads
+.releases/<skill-name>/1.0/SKILL.md   prose the agent loads (YAML frontmatter: name, description)
+.releases/<skill-name>/1.0/kernel.py  helpers, exec'd into the kernel when the skill loads
+registry.json                         release registry metadata
 tests/test_structure.py          offline; runs on every push
 tests/test_live_*.py             hit live services; run weekly
 tools/sync_skills.py             move skills between this repo and a registry

@@ -26,11 +26,12 @@ import re
 import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-PYART_SKILLS = sorted(p for p in (ROOT / "skills").iterdir()
+RELEASES = ROOT / ".releases"
+PYART_SKILLS = sorted(p / "1.0" for p in RELEASES.iterdir()
                       if p.is_dir() and p.name.startswith("pyart-"))
-PYART_NAMES = [p.name for p in PYART_SKILLS]
-TRANCHE = PYART_SKILLS + [ROOT / "skills" / "cmac-vap"]
-TRANCHE_NAMES = [p.name for p in TRANCHE]
+PYART_NAMES = [p.parent.name for p in PYART_SKILLS]
+TRANCHE = PYART_SKILLS + [RELEASES / "cmac-vap" / "1.0"]
+TRANCHE_NAMES = [p.parent.name for p in TRANCHE]
 
 # Measured on the two reference volumes; see each skill's provenance section.
 KIWA_SWEEPS = 19
@@ -75,9 +76,9 @@ def test_provenance_names_radar_and_date(skill):
     """
     text = read(skill)
     assert re.search(r"\b(KIWA|C-SAPR|NEXRAD|WSR-88D)\b", text), \
-        f"{skill.name}: no reference radar named"
+        f"{skill.parent.name}: no reference radar named"
     assert re.search(r"\b20\d\d-\d\d-\d\d\b", text), \
-        f"{skill.name}: no ISO date for the reference volume"
+        f"{skill.parent.name}: no ISO date for the reference volume"
 
 
 @pytest.mark.parametrize("skill", TRANCHE, ids=TRANCHE_NAMES)
@@ -89,7 +90,7 @@ def test_documented_helpers_exist(skill):
     """
     ns = sidecar_ns(skill)
     if not ns:
-        pytest.skip(f"{skill.name} ships no kernel.py")
+        pytest.skip(f"{skill.parent.name} ships no kernel.py")
     defined = {k for k, v in ns.items() if callable(v)}
     src = read(skill, "kernel.py")
     tree = ast.parse(src)
@@ -142,7 +143,7 @@ def test_documented_helpers_exist(skill):
                 "filled", "masked_invalid", "argsort", "deg2rad", "radians"}
     missing = sorted(n for n in called - external
                      if n not in defined and n not in top_level)
-    assert not missing, (f"{skill.name}/SKILL.md calls helpers that kernel.py does "
+    assert not missing, (f"{skill.parent.name}/SKILL.md calls helpers that kernel.py does "
                          f"not define: {missing}")
 
 
@@ -163,11 +164,11 @@ def test_kiwa_sweep_arithmetic_consistent():
         wrong = {n for n in numbers_near(text, r"\b(\d+)\s+sweeps\b")
                  if n not in (KIWA_SWEEPS, KIWA_UNIQUE_ELEVATIONS, CSAPR_TILTS, 1.0, 3.0)}
         if wrong:
-            offenders.append(f"{skill.name}: unexplained sweep counts {sorted(wrong)}")
+            offenders.append(f"{skill.parent.name}: unexplained sweep counts {sorted(wrong)}")
         if sweeps and sweeps != {float(KIWA_SWEEPS)}:
-            offenders.append(f"{skill.name}: sweep count {sweeps}")
+            offenders.append(f"{skill.parent.name}: sweep count {sweeps}")
         if uniq and uniq != {float(KIWA_UNIQUE_ELEVATIONS)}:
-            offenders.append(f"{skill.name}: unique-elevation count {uniq}")
+            offenders.append(f"{skill.parent.name}: unique-elevation count {uniq}")
     assert not offenders, "inconsistent split-cut arithmetic:\n  " + \
         "\n  ".join(offenders)
 
@@ -181,7 +182,7 @@ def test_csapr_nyquist_stated_consistently():
         cited |= set(numbers_near(text, r"\b(1[0-9]\.\d\d)\s*m/s"))
         for v in cited:
             if abs(v - CSAPR_NYQUIST_MS) > 0.005:
-                bad.append(f"{skill.name}: {v} m/s where {CSAPR_NYQUIST_MS} expected")
+                bad.append(f"{skill.parent.name}: {v} m/s where {CSAPR_NYQUIST_MS} expected")
     assert not bad, "Nyquist velocity misquoted:\n  " + "\n  ".join(bad)
 
 
@@ -192,7 +193,7 @@ def test_dealias_ratio_arithmetic():
     in velocity range), so the ratio and the ranges must agree with each other
     and with the stated Nyquist.
     """
-    skill = ROOT / "skills" / "pyart-velocity-dealias"
+    skill = RELEASES / "pyart-velocity-dealias" / "1.0"
     if not skill.exists():
         pytest.skip("dealias skill not in this repo")
     text = read(skill)
@@ -248,7 +249,7 @@ def test_cone_radius_grows_with_height():
     The cone of silence is the tranche's georeferencing ground truth, so the
     formula behind it is checked rather than trusted.
     """
-    skill = ROOT / "skills" / "pyart-mapping"
+    skill = RELEASES / "pyart-mapping" / "1.0"
     if not skill.exists():
         pytest.skip("mapping skill not in this repo")
     ns = sidecar_ns(skill)
@@ -272,7 +273,7 @@ def test_datum_error_is_real_and_geodetic_is_clean():
     release ever changes this, the skill's central claim is void and this test is
     how we find out.
     """
-    skill = ROOT / "skills" / "pyart-mapping"
+    skill = RELEASES / "pyart-mapping" / "1.0"
     if not skill.exists():
         pytest.skip("mapping skill not in this repo")
     ns = sidecar_ns(skill)
@@ -306,13 +307,13 @@ def test_exclusion_fractions_are_fractions():
                              text):
             v = float(m.group(1))
             if not 0.0 <= v <= 1.0:
-                bad.append(f"{skill.name}: {v}")
+                bad.append(f"{skill.parent.name}: {v}")
     assert not bad, "exclusion fractions outside [0,1]:\n  " + "\n  ".join(bad)
 
 
 def test_qc_recipes_are_ordered_by_strictness():
     """permissive < dualpol < strict must hold in the code, not just the prose."""
-    skill = ROOT / "skills" / "pyart-gatefilter-qc"
+    skill = RELEASES / "pyart-gatefilter-qc" / "1.0"
     if not skill.exists():
         pytest.skip("gatefilter skill not in this repo")
     src = read(skill, "kernel.py")
@@ -327,7 +328,7 @@ def test_qc_recipes_are_ordered_by_strictness():
 
 def test_nyquist_ratio_verdicts_are_monotonic():
     """nyquist_ratio must call a near-1 ratio clean and a large one suspect."""
-    skill = ROOT / "skills" / "pyart-velocity-dealias"
+    skill = RELEASES / "pyart-velocity-dealias" / "1.0"
     if not skill.exists():
         pytest.skip("dealias skill not in this repo")
     src = read(skill, "kernel.py")
@@ -348,7 +349,7 @@ def test_lp_bug_described_as_upstream_not_user_error():
     A reader who believes it is their data will burn hours on QC and solver
     tolerances, both of which were tested and ruled out.
     """
-    skill = ROOT / "skills" / "pyart-dualpol-phase"
+    skill = RELEASES / "pyart-dualpol-phase" / "1.0"
     if not skill.exists():
         pytest.skip("dualpol skill not in this repo")
     text = read(skill)
@@ -367,7 +368,7 @@ def test_schneebeli_runs_quoted_as_pairs():
     with the unfiltered run's percentiles. The two runs differ only in the
     gatefilter passed, so each row must carry its own runtime AND its own p99.
     """
-    skill = ROOT / "skills" / "pyart-dualpol-phase"
+    skill = RELEASES / "pyart-dualpol-phase" / "1.0"
     if not skill.exists():
         pytest.skip("dualpol skill not in this repo")
     text = read(skill)
@@ -395,7 +396,7 @@ def test_maesaka_fill_is_labelled():
     solver still returned a finite value at every gate. An unqualified 3.96 M
     invites the reader to rank it above vulpiani's 339 k.
     """
-    skill = ROOT / "skills" / "pyart-dualpol-phase"
+    skill = RELEASES / "pyart-dualpol-phase" / "1.0"
     if not skill.exists():
         pytest.skip("dualpol skill not in this repo")
     text = read(skill)
@@ -410,13 +411,13 @@ def test_sweep_number_trap_documented_where_it_bites():
     """Skills whose functions hit the extract_sweeps trap must warn about it."""
     affected = {"pyart-foundations", "pyart-retrievals"}
     for skill in TRANCHE:
-        if skill.name not in affected:
+        if skill.parent.name not in affected:
             continue
         text = read(skill)
         assert "sweep_number" in text, \
-            f"{skill.name} does not mention the sweep_number trap"
+            f"{skill.parent.name} does not mention the sweep_number trap"
         assert re.search(r"extract_sweeps", text), \
-            f"{skill.name} does not name extract_sweeps as the cause"
+            f"{skill.parent.name} does not name extract_sweeps as the cause"
 
 
 def test_roi_ranking_stated_as_the_transferable_result():
@@ -425,7 +426,7 @@ def test_roi_ranking_stated_as_the_transferable_result():
     Re-running the holdout sweep with a different base gatefilter moved nb-1.5
     RMSE between 4.57 and 4.96 dBZ. The ranking was stable; the digits were not.
     """
-    skill = ROOT / "skills" / "pyart-gridding"
+    skill = RELEASES / "pyart-gridding" / "1.0"
     if not skill.exists():
         pytest.skip("gridding skill not in this repo")
     text = read(skill)
@@ -449,7 +450,7 @@ def test_cmac_machinery_stays_out_of_pyart_skills():
         blob = read(skill) + read(skill, "kernel.py")
         for token in cmac_only:
             if token in blob:
-                leaks.append(f"{skill.name}: {token}")
+                leaks.append(f"{skill.parent.name}: {token}")
     assert not leaks, ("CMAC-specific machinery leaked into pyart-* skills "
                        "(document it in cmac-vap instead):\n  " +
                        "\n  ".join(leaks))
@@ -457,7 +458,7 @@ def test_cmac_machinery_stays_out_of_pyart_skills():
 
 def test_cmac_skill_states_the_separation():
     """cmac-vap must say it is separate and point back at the pyart-* skills."""
-    skill = ROOT / "skills" / "cmac-vap"
+    skill = RELEASES / "cmac-vap" / "1.0"
     if not skill.exists():
         pytest.skip("cmac-vap not in this repo")
     text = read(skill)
@@ -485,4 +486,4 @@ def test_radar_class_differences_are_attributed(skill):
         window += text[max(0, start if start != -1 else m.start() - 1200):
                        m.start() + 400]
     assert re.search(r"NEXRAD|WSR-88D|research", window), \
-        (f"{skill.name}: NCP discussed without naming which radar class has it")
+        (f"{skill.parent.name}: NCP discussed without naming which radar class has it")

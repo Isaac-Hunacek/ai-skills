@@ -21,7 +21,7 @@ RELEASES = ROOT / ".releases"
 TRANCHE = RELEASES / "arm-vaps" / "1.0"
 CATALOG = RELEASES / "arm-instruments" / "1.0" / "catalog.csv"
 SKILLS = sorted(RELEASES.glob("arm-vap-*/1.0"))
-IDS = [p.name for p in SKILLS]
+IDS = [p.parent.name for p in SKILLS]
 
 pytestmark = pytest.mark.skipif(not SKILLS, reason="arm-vaps tranche not in this repo")
 
@@ -32,7 +32,7 @@ def catalog():
 
 
 def code_of(skill):
-    return skill.name[len("arm-vap-"):]
+    return skill.parent.name[len("arm-vap-"):]
 
 
 def inventory(skill):
@@ -52,11 +52,11 @@ def test_index_and_catalog_exist():
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
 def test_code_is_a_vap_in_the_catalog(skill):
     cat, code = catalog(), code_of(skill)
-    assert code in cat, f"{skill.name}: {code!r} is not an ARM class code"
-    assert cat[code]["skill"] == skill.name, \
+    assert code in cat, f"{skill.parent.name}: {code!r} is not an ARM class code"
+    assert cat[code]["skill"] == skill.parent.name, \
         f"catalog says {cat[code]['skill']!r} for {code}"
     assert cat[code]["product_type"] == "vap", \
-        f"{skill.name}: catalog product_type is {cat[code]['product_type']!r}, not 'vap'"
+        f"{skill.parent.name}: catalog product_type is {cat[code]['product_type']!r}, not 'vap'"
 
 
 def test_catalog_skill_column_matches_directories():
@@ -70,30 +70,30 @@ def test_catalog_skill_column_matches_directories():
 def test_report_url_matches_catalog(skill):
     text = (skill / "SKILL.md").read_text()
     expected = catalog()[code_of(skill)]["pdf"]
-    assert expected, f"{skill.name}: catalog has no report URL"
-    assert expected in text, f"{skill.name}: does not link {expected}"
+    assert expected, f"{skill.parent.name}: catalog has no report URL"
+    assert expected in text, f"{skill.parent.name}: does not link {expected}"
     assert expected == expected.strip(), \
-        f"{skill.name}: catalog URL carries stray whitespace, which the server answers 404 for"
+        f"{skill.parent.name}: catalog URL carries stray whitespace, which the server answers 404 for"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
 def test_credits_the_report_authors(skill):
     text = (skill / "SKILL.md").read_text()
-    assert "## Credit" in text, f"{skill.name}: no Credit section"
+    assert "## Credit" in text, f"{skill.parent.name}: no Credit section"
     m = re.search(r"## Credit\n(.*?)\n## ", text, re.S)
-    assert m, f"{skill.name}: Credit section is empty"
+    assert m, f"{skill.parent.name}: Credit section is empty"
     block = m.group(1)
     authors = [a.strip() for a in (catalog()[code_of(skill)]["authors"] or "").split(";") if a.strip()]
     if authors:
         missing = [a for a in authors if a not in block]
-        assert not missing, f"{skill.name}: Credit omits {missing}"
+        assert not missing, f"{skill.parent.name}: Credit omits {missing}"
     else:
         assert "names no individual author" in block, \
-            f"{skill.name}: no authors recorded and no statement that the cover names none"
+            f"{skill.parent.name}: no authors recorded and no statement that the cover names none"
     assert "Cite the technical report, not this skill" in block, \
-        f"{skill.name}: Credit does not tell the reader what to cite"
+        f"{skill.parent.name}: Credit does not tell the reader what to cite"
     assert "handbook" not in block.lower(), \
-        f"{skill.name}: Credit calls the source a handbook; a VAP cites a technical report"
+        f"{skill.parent.name}: Credit calls the source a handbook; a VAP cites a technical report"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -103,7 +103,7 @@ def test_shared_report_is_declared(skill):
     if catalog()[code_of(skill)].get("handbook_coverage") != "shared report":
         return
     assert "Scope of this report" in (skill / "SKILL.md").read_text(), \
-        f"{skill.name}: catalog marks its report as shared but the skill carries no scope note"
+        f"{skill.parent.name}: catalog marks its report as shared but the skill carries no scope note"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -114,18 +114,18 @@ def test_partial_extraction_is_declared(skill):
         return
     text = (skill / "SKILL.md").read_text()
     assert "Extraction coverage" in text, \
-        f"{skill.name}: extraction was partial but the skill does not say so"
+        f"{skill.parent.name}: extraction was partial but the skill does not say so"
     assert "lower bounds" in text, \
-        f"{skill.name}: coverage note does not tell the reader the lists are lower bounds"
+        f"{skill.parent.name}: coverage note does not tell the reader the lists are lower bounds"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
 def test_declares_its_inputs(skill):
     """A VAP skill that does not name its inputs is missing the thing that makes it a VAP."""
     text = (skill / "SKILL.md").read_text()
-    assert "## Inputs" in text, f"{skill.name}: no Inputs section"
+    assert "## Inputs" in text, f"{skill.parent.name}: no Inputs section"
     for code in [i for i in (catalog()[code_of(skill)].get("vap_inputs") or "").split(",") if i]:
-        assert f"`{code}`" in text, f"{skill.name}: catalog declares input {code} but the skill omits it"
+        assert f"`{code}`" in text, f"{skill.parent.name}: catalog declares input {code} but the skill omits it"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -135,13 +135,13 @@ def test_inventory_or_reason(skill):
     if has_inv:
         assert not unverified(skill)
         assert cat["verified_file"] == inventory(skill)["filename"], \
-            f"{skill.name}: catalog verified_file disagrees with the shipped inventory"
+            f"{skill.parent.name}: catalog verified_file disagrees with the shipped inventory"
         return
-    assert unverified(skill), f"{skill.name}: no inventory and no statement that none was verified"
-    assert cat["no_example_reason"], f"{skill.name}: catalog carries no reason"
+    assert unverified(skill), f"{skill.parent.name}: no inventory and no statement that none was verified"
+    assert cat["no_example_reason"], f"{skill.parent.name}: catalog carries no reason"
     for claim in ("### Variables in that file", "Measured on the example file"):
         assert claim not in (skill / "SKILL.md").read_text(), \
-            f"{skill.name}: claims {claim!r} with no verified example"
+            f"{skill.parent.name}: claims {claim!r} with no verified example"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -156,18 +156,18 @@ def test_variables_cited_exist_in_the_file(skill):
     cited = set(re.findall(r"^\|\s*`([A-Za-z0-9_]+)`\s*\|", m.group(1), re.M))
     assert cited
     assert not sorted(cited - present), \
-        f"{skill.name}: cites variables absent from the file: {sorted(cited - present)}"
+        f"{skill.parent.name}: cites variables absent from the file: {sorted(cited - present)}"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
 def test_page_citations_are_within_the_report(skill):
     text = (skill / "SKILL.md").read_text()
     m = re.search(r"`tr p\. N`,\s*(\d+)\s*pages", text)
-    assert m, f"{skill.name}: header does not state the report page count"
+    assert m, f"{skill.parent.name}: header does not state the report page count"
     n_pages = int(m.group(1))
     bad = sorted({p for p in (int(x) for x in re.findall(r"tr p\.\s*(\d+)", text))
                   if p < 1 or p > n_pages})
-    assert not bad, f"{skill.name}: page citations outside 1-{n_pages}: {bad}"
+    assert not bad, f"{skill.parent.name}: page citations outside 1-{n_pages}: {bad}"
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=IDS)
@@ -176,7 +176,7 @@ def test_has_the_vap_sections(skill):
     for heading in ("## How it is produced", "## Inputs", "## Getting the data",
                     "## Quality control in this product", "## Documented failure modes",
                     "## Verified against"):
-        assert heading in text, f"{skill.name}: missing section {heading!r}"
+        assert heading in text, f"{skill.parent.name}: missing section {heading!r}"
 
 
 def test_rejected_products_ship_no_skill():

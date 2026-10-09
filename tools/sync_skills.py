@@ -19,23 +19,23 @@ import difflib
 import json
 import pathlib
 
-SKILLS_DIR = pathlib.Path(__file__).resolve().parent.parent / "skills"
+RELEASES_DIR = pathlib.Path(__file__).resolve().parent.parent / ".releases"
 
 
 def repo_skills():
     """Skill directories present in the repository, with their file contents.
 
-    Skills may be nested one level inside a tranche directory (the ARM instrument
-    skills live under skills/arm-instruments/), so this walks rather than lists.
-    Registry names are flat, so the directory name alone is the key - which is why
-    a nested skill's directory name must still be globally unique.
+    Each skill is stored as .releases/<name>/1.0/. Registry names are flat, so
+    the release directory name alone is the key.
     """
     out = {}
-    for d in sorted(p for p in SKILLS_DIR.rglob("*")
-                    if p.is_dir() and (p / "SKILL.md").exists()):
-        files = {f.name: f.read_text() for f in sorted(d.iterdir())
+    for release in sorted(p for p in RELEASES_DIR.iterdir() if p.is_dir()):
+        d = release / "1.0"
+        if not (d / "SKILL.md").exists():
+            continue
+        files = {f.name: f.read_text(encoding="utf-8") for f in sorted(d.iterdir())
                  if f.is_file() and not f.name.startswith(".")}
-        out[d.name] = files
+        out[release.name] = files
     return out
 
 
@@ -103,12 +103,12 @@ def pull(host=None, names=None):
     reg = registry_skills(host, names)
     written = []
     for name, files in reg.items():
-        dest = SKILLS_DIR / name
+        dest = RELEASES_DIR / name / "1.0"
         dest.mkdir(parents=True, exist_ok=True)
         for path, content in files.items():
             target = dest / path
-            if not target.exists() or target.read_text() != content:
-                target.write_text(content)
+            if not target.exists() or target.read_text(encoding="utf-8") != content:
+                target.write_text(content, encoding="utf-8")
                 written.append(f"{name}/{path}")
     print(f"pulled {len(reg)} skills, {len(written)} files changed")
     for w in written:

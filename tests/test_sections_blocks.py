@@ -16,8 +16,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools" / "arm_instrument_build"))
 import sections  # noqa: E402
 
-ARM = sorted(list((ROOT / "skills" / "arm-instruments").glob("arm-instrument-*"))
-             + list((ROOT / "skills" / "arm-vaps").glob("arm-vap-*")))
+ARM = sorted(list((ROOT / ".releases").glob("arm-instrument-*/1.0"))
+             + list((ROOT / ".releases").glob("arm-vap-*/1.0")))
 IDS = [p.name for p in ARM]
 FETCH = re.compile(r'files = act\.discovery\.download_arm_data\(user, token, "([^"]+)", "([^"]+)", "\2"\)')
 

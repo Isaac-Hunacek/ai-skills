@@ -27,8 +27,9 @@ import re
 import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SKILLS = sorted(p for p in (ROOT / "skills").rglob("*")
-                if p.is_dir() and (p / "SKILL.md").exists())
+SKILLS = sorted((release / "1.0" for release in (ROOT / ".releases").iterdir()
+                if release.is_dir() and (release / "1.0" / "SKILL.md").exists()),
+                key=lambda p: p.parent.name)
 IDS = [p.name for p in SKILLS]
 
 # helpers defined by act-arm-live, act-qc and arm-instruments kernel.py sidecars

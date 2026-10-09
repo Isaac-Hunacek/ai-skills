@@ -13,37 +13,36 @@ import re
 import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+RELEASES = ROOT / ".releases"
+
+
+def skill_dir(name):
+    return RELEASES / name / "1.0"
 
 
 def discover(root):
-    """Every skill directory under skills/, at any depth.
-
-    A skill is a directory holding a SKILL.md. Tranches may nest one level - the
-    ARM instrument skills live in skills/arm-instruments/arm-instrument-<code>/,
-    with skills/arm-instruments/ itself the index skill - so a flat iterdir()
-    would both miss them and treat the tranche directory as a broken skill.
-    """
-    return sorted((p for p in root.rglob("*") if p.is_dir() and (p / "SKILL.md").exists()),
-                  key=lambda p: str(p))
+    """Every 1.0 release directory that contains a skill manifest."""
+    return sorted((release / "1.0" for release in root.iterdir()
+                   if release.is_dir() and (release / "1.0" / "SKILL.md").exists()),
+                  key=lambda p: p.parent.name)
 
 
-SKILLS = discover(ROOT / "skills")
+SKILLS = discover(RELEASES)
 NAMES = [p.name for p in SKILLS]
 DEAD_BUCKET = "noaa-nexrad-level2"
 
 
-def test_no_skill_dir_without_skill_md():
-    """A directory under skills/ is either a skill or a tranche of skills."""
-    orphans = []
-    for p in (ROOT / "skills").rglob("*"):
-        if not p.is_dir() or p.name == "__pycache__":
+def test_release_layout():
+    """Every release contains exactly the current 1.0 version directory."""
+    invalid = []
+    for release in RELEASES.iterdir():
+        if not release.is_dir():
+            invalid.append(str(release.relative_to(ROOT)))
             continue
-        if (p / "SKILL.md").exists():
-            continue
-        if any(c.is_dir() and (c / "SKILL.md").exists() for c in p.iterdir()):
-            continue
-        orphans.append(str(p.relative_to(ROOT)))
-    assert not orphans, f"directories under skills/ that are neither: {orphans}"
+        versions = [p.name for p in release.iterdir() if p.is_dir()]
+        if versions != ["1.0"] or not (release / "1.0" / "SKILL.md").exists():
+            invalid.append(str(release.relative_to(ROOT)))
+    assert not invalid, f"invalid release directories: {invalid}"
 
 
 def sidecars():
@@ -229,7 +228,7 @@ def test_router_documented_crossovers_match_code():
     This exact drift shipped once: a docstring kept a value from a superseded
     constant. The doc is not allowed to disagree with the code.
     """
-    router = ROOT / "skills" / "nexrad-cloud-router"
+    router = skill_dir("nexrad-cloud-router")
     if not router.exists():
         pytest.skip("router not in this repo")
     ns = {}

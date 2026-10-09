@@ -31,7 +31,7 @@ import tempfile
 import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SKILL = ROOT / "skills" / "arm-netcdf-standards"
+SKILL = ROOT / ".releases" / "arm-netcdf-standards" / "1.0"
 KERNEL = SKILL / "kernel.py"
 ENGINE = SKILL / "arm_standards_check.py"
 

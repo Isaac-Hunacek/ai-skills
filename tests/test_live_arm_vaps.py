@@ -16,9 +16,10 @@ import urllib.request
 import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-TRANCHE = ROOT / "skills" / "arm-vaps"
-CATALOG = ROOT / "skills" / "arm-instruments" / "catalog.csv"
-SKILLS = sorted(p for p in TRANCHE.glob("arm-vap-*") if (p / "SKILL.md").exists())
+RELEASES = ROOT / ".releases"
+TRANCHE = RELEASES / "arm-vaps" / "1.0"
+CATALOG = RELEASES / "arm-instruments" / "1.0" / "catalog.csv"
+SKILLS = sorted(RELEASES.glob("arm-vap-*/1.0"))
 IDS = [p.name for p in SKILLS]
 ARMLIVE_QUERY = "https://adc.arm.gov/armlive/livedata/query"
 

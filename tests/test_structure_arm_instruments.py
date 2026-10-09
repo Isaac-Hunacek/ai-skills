@@ -16,8 +16,9 @@ import re
 import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-TRANCHE = ROOT / "skills" / "arm-instruments"
-SKILLS = sorted(p for p in TRANCHE.glob("arm-instrument-*") if (p / "SKILL.md").exists())
+RELEASES = ROOT / ".releases"
+TRANCHE = RELEASES / "arm-instruments" / "1.0"
+SKILLS = sorted(RELEASES.glob("arm-instrument-*/1.0"))
 IDS = [p.name for p in SKILLS]
 
 pytestmark = pytest.mark.skipif(not TRANCHE.exists(),
